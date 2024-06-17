@@ -1,0 +1,25 @@
+---
+- name: Tang Poems Search
+  hosts: localhost
+  vars:
+    keyword: ""
+    jsondata: "{{ lookup('file', '300-zh_tw.json') | from_json }}"
+  tasks:
+    - name: Print Solgon 
+      debug:
+          msg: "熟讀唐詩三百首，不會作詩也能吟。"
+
+    - name: Display input Hits
+      when: not keyword
+      ansible.builtin.debug:
+          msg: "請輸入搜尋的關鍵字詞"
+
+    - name: Display inputs
+      when: keyword
+      ansible.builtin.debug:
+        msg: "搜尋的關鍵字詞: {{keyword}}"
+    
+    - name: Print Search Result
+      when: keyword
+      debug:
+          msg: "{{ jsondata | selectattr('contents', 'contains' , keyword) }}"
