@@ -9,11 +9,6 @@
       debug:
           msg: "熟讀唐詩三百首，不會作詩也能吟。"
 
-    - name: Display input Hits
-      when: not keyword
-      ansible.builtin.debug:
-          msg: "請輸入搜尋的關鍵字詞"
-
     - name: Display inputs
       when: keyword
       ansible.builtin.debug:
