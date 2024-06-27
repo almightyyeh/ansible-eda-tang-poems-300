@@ -12,7 +12,7 @@
   rules:
     - name: tang poem research 
       condition: event.payload.keyword
-      action:
+      actions:
         set_fact:
           fact:
             keyword: "{{ event.payload.keyword }}"
