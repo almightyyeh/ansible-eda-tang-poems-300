@@ -9,14 +9,14 @@
         host: 0.0.0.0
         port: 5000
 
-  ## Define the conditions we are looking for
-
   rules:
     - name: tang poem research 
-      condition: event.playload.keyword
+      condition: event.payload.keyword
       action:
         set_fact:
           fact:
-            keyword: "{{ event.playload.keyword }}"
+            keyword: "{{ event.payload.keyword }}"
+        print_event:
+          pretty: true
         run_playbook:
           name: search-tang-poems-300.yml
