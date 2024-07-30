@@ -45,6 +45,7 @@
           register: issue
 
         - name: Comment on issue with search result
+          when: search_result.msg is defined and search_result.msg|length > 0 
           community.general.jira:
             uri: "{{ jira_server }}"
             username: "{{ jira_user }}"
@@ -57,8 +58,19 @@
               類別: {{item.type}}
               
               {{item.contents}}
-
           loop: "{{ search_result.msg }}"
+
+        - name: Comment on issue with no result
+          when: search_result.msg is defined and search_result.msg|length < 1 
+          community.general.jira:
+            uri: "{{ jira_server }}"
+            username: "{{ jira_user }}"
+            password: "{{ jira_password }}"
+            issue: "{{ issue.meta.key }}"
+            operation: comment
+            comment: |
+              在資料庫中未搜尋到關鍵字 {{ keyword }} 內容。
+          
 
     - name: Send Message to Slack
       when: notify == "slack"
