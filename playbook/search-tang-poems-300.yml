@@ -41,7 +41,7 @@
               熟讀唐詩三百首，不會作詩也能吟。  
               
               透過Ansible EDA Webhook 觸發關鍵字，驅動 Ansible Automation Controller 執行唐詩300首資料庫搜尋關鍵字詞的腳本，並且於JIRA 留言中回覆符合詩首。
-          issuetype: Task
+            issuetype: Task
           register: issue
 
         - name: Comment on issue with search result
