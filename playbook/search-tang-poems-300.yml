@@ -1,0 +1,95 @@
+---
+- name: Tang Poems Search
+  hosts: localhost
+  vars:
+    slack_url: ""
+    notify: ""
+    jira_server: ""
+    jira_user: ""
+    jira_password: ""
+    jira_project: ""
+    keyword: ""
+    jsondata: "{{ lookup('file', '300-zh_tw.json') | from_json }}"
+  tasks:
+    - name: Print Solgon 
+      debug:
+          msg: "熟讀唐詩三百首，不會作詩也能吟。"
+
+    - name: Display inputs
+      when: keyword
+      ansible.builtin.debug:
+        msg: "搜尋的關鍵字詞: {{keyword}}"
+    
+    - name: Print Search Result
+      when: keyword
+      debug:
+          msg: "{{ jsondata | selectattr('contents', 'contains' , keyword) }}"
+      register: search_result
+
+    - name: Create Jira Issue & comment Result
+      when: notify == "jira"
+      block:
+        - name: Create New Issue
+          community.general.jira:
+            uri: "{{ jira_server }}"
+            username: "{{ jira_user }}"
+            password: "{{ jira_password }}"
+            project: "{{ jira_project }}"
+            operation: create
+            summary: "XOPS  唐詩300首 搜尋關鍵字: {{ keyword }}"
+            description: |
+              熟讀唐詩三百首，不會作詩也能吟。  
+              
+              透過Ansible EDA Webhook 觸發關鍵字，驅動 Ansible Automation Controller 執行唐詩300首資料庫搜尋關鍵字詞的腳本，並且於JIRA 留言中回覆符合詩首。
+          issuetype: Task
+          register: issue
+
+        - name: Comment on issue with search result
+          community.general.jira:
+            uri: "{{ jira_server }}"
+            username: "{{ jira_user }}"
+            password: "{{ jira_password }}"
+            issue: "{{ issue.meta.key }}"
+            operation: comment
+            comment: |
+              詩詞名: {{item.title}}
+              作者: {{ item.author}}
+              類別: {{item.type}}
+              
+              {{item.contents}}
+
+          loop: "{{ search_result.msg }}"
+
+    - name: Send Message to Slack
+      when: notify == "slack"
+      block:
+        - name: Send Slack Head 
+          ansible.builtin.uri:
+            url: "{{slack_url}}"
+            method: POST
+            headers:
+              Content-Type: application/json
+            body_format: json
+            body: '{"text": "熟讀唐詩三百首，不會作詩也能吟"}'
+
+        - name: Send Slack keyword
+          ansible.builtin.uri:
+            url: "{{slack_url}}"
+            method: POST
+            headers:
+              Content-Type: application/json
+            body_format: json
+            body: {'text': '搜尋關鍵字: "{{ keyword }}"'}
+
+        - name: Send Slack Search Result
+          ansible.builtin.uri:
+            url: "{{slack_url}}"
+            method: POST
+            headers:
+              Content-Type: application/json
+            body_format: json
+            body: |
+              { "text": "==========\n作者: {{ item.author}} \n類別: {{item.type}} \n詩詞名: {{item.title}} \n\n{{item.contents}}" }
+          loop: "{{ search_result.msg }}"
+
+        

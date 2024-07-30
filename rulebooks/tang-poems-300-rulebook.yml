@@ -1,0 +1,21 @@
+---
+- name: Example
+  hosts: all
+  sources:
+    - ansible.eda.webhook:
+        host: 0.0.0.0
+        port: 5050
+  
+  rules:
+    - name: Tang Poem Searc Trigger by Event
+      condition: event.payload.keyword is defined
+      action:
+        run_job_template:
+          name: "zen-300"
+          organization: "EDA展示區"
+        
+        ### run_playbook not able to execute on AAP  
+        # run_playbook:
+        #   name: search-tang-poems-300.yml
+        #   extra_vars:
+        #     keyword: "{{event.payload.keyword}}" 
